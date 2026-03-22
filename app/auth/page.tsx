@@ -5,15 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation"; // <-- Add this too
+import { useRouter } from "next/navigation";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(false); // Default to Register for new users
+  const [isLogin, setIsLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,44 +25,42 @@ export default function AuthPage() {
     setSuccess("");
 
     if (!isLogin) {
-      // Handle Registration
       try {
         const res = await fetch("/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password }),
         });
-
         const data = await res.json();
-
         if (!res.ok) {
           setError(data.error || "Something went wrong.");
         } else {
-      // NEW: Handle Login with NextAuth
+          setSuccess("Welcome to AURA. You can now sign in.");
+          setTimeout(() => setIsLogin(true), 2000);
+        }
+      } catch (err) {
+        setError("Network error. Please try again.");
+      }
+    } else {
       const res = await signIn("credentials", {
         redirect: false,
         email,
         password,
       });
-
       if (res?.error) {
         setError(res.error);
       } else {
         setSuccess("Authentication successful. Entering portal...");
-        // Redirect to the member dashboard after a brief delay for a smooth UX
-        setTimeout(() => router.push("/dashboard"), 1500); 
+        setTimeout(() => router.push("/dashboard"), 1500);
       }
     }
-
     setIsLoading(false);
   };
 
   return (
     <main className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden px-6">
-      {/* Background Cinematic Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/10 rounded-full blur-[150px] pointer-events-none" />
 
-      {/* Back to Home Link */}
       <Link href="/" className="absolute top-8 left-8 text-neutral-500 hover:text-white transition-colors flex items-center gap-2 text-sm">
         <ArrowLeft size={16} /> Return
       </Link>
@@ -75,7 +72,6 @@ export default function AuthPage() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="bg-surface border border-white/10 rounded-[2rem] p-10 backdrop-blur-xl shadow-2xl"
         >
-          {/* Header */}
           <div className="text-center mb-10">
             <h1 className="text-3xl font-bold tracking-tight mb-2">
               {isLogin ? "Welcome back." : "Define your legacy."}
@@ -85,7 +81,6 @@ export default function AuthPage() {
             </p>
           </div>
 
-          {/* Status Messages */}
           <AnimatePresence mode="wait">
             {error && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-6 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg text-center">
@@ -99,7 +94,6 @@ export default function AuthPage() {
             )}
           </AnimatePresence>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <AnimatePresence mode="wait">
               {!isLogin && (
@@ -109,11 +103,11 @@ export default function AuthPage() {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
                 >
                   <label className="block text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Full Name</label>
                   <input 
                     type="text" 
-                    required={!isLogin}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent transition-colors"
@@ -163,7 +157,6 @@ export default function AuthPage() {
             </button>
           </form>
 
-          {/* Toggle State */}
           <div className="mt-8 text-center">
             <button 
               onClick={() => {
